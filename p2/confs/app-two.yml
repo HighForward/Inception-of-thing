@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-two
+spec:
+  selector:
+    matchLabels:
+      run: app-two
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        run: app-two
+    spec:
+      containers:
+        - name: app-two
+          image: nginx
+          volumeMounts:
+            - name: nginx-html-vol
+              mountPath: /usr/share/nginx/html/index.html.template
+              subPath: index.html.template
+          ports:
+            - containerPort: 80
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: APP_NAME
+              value: "app-two"
+          command: ["/bin/sh"]
+          args: ["-c", "envsubst < /usr/share/nginx/html/index.html.template > /usr/share/nginx/html/index.html && \
+                    exec nginx -g 'daemon off;'"]
+      volumes:
+        - name: nginx-html-vol
+          configMap:
+            name: nginx-html
+            items:
+              - key: index.html.template
+                path: index.html.template
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-two
+  labels:
+    run: app-two
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+  selector:
+    run: app-two
