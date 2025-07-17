@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: playground-app
+  namespace: argocd #It must be in the argocd namespace because that’s where Argo CD is installed and watches for new apps
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/itzbw/iot-bw
+    targetRevision: HEAD
+    path: dev #Argo CD will continuously monitor this path in the repo and apply any changes to the cluster
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true #If someone changes a resource directly in the cluster (e.g., kubectl edit), Argo CD will revert it back to match Git
