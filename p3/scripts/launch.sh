@@ -15,7 +15,10 @@ fi
 
 # Create k3d cluster
 echo "Creating k3d cluster..."
-k3d cluster create iot-cluster -p "8888:8080@loadbalancer" || echo "Cluster might already exist"
+k3d cluster create iot-cluster \
+    -p "80:80@loadbalancer" \
+    -p "8888:8080@loadbalancer" \
+    --k3s-arg "--disable=traefik@server:0" || echo "Cluster might already exist"
 
 # Create namespaces
 echo "Creating namespaces..."
@@ -39,7 +42,7 @@ echo "Getting Argo CD admin password..."
 ARGOCD_PASSWORD=$(kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 --decode)
 
 echo "✅ Setup complete!"
-echo "Access Argo CD: kubectl port-forward svc/argocd-server 8080:80 -n argocd"
+echo "Access Argo CD: kubectl port-forward --address 192.168.56.120 svc/argocd-server 8080:80 -n argocd"
 echo "Username: admin"
 echo "Password: $ARGOCD_PASSWORD"
 echo ""
