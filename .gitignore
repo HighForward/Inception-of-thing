@@ -1,4 +1,12 @@
-p1/.vagrant
-p1/confs/token
+**/.vagrant/
 
-p2/.vagrant
+**/confs/token
+
+*.log
+*.tmp
+*.swp
+*~
+
+**/.kube/
+
+**/generated/
