@@ -52,20 +52,21 @@ helm repo add gitlab https://charts.gitlab.io/ || true
 helm repo update
 
 echo "Installing GitLab with Helm (this will take a while)..."
-# Assurez-vous que le fichier gitlab-values.yaml est bien dans /vagrant/bonus/
 helm upgrade --install gitlab gitlab/gitlab \
   --namespace gitlab \
   -f /vagrant/confs/gitlab-values.yaml \
   --timeout 1200s
 
 echo "Waiting for GitLab pods to be ready (this can take 5-15 minutes)..."
-kubectl wait --for=condition=ready pods --all -n gitlab --timeout=12000s
+kubectl wait --for=condition=ready pods --all -n gitlab --timeout=1200s
 
 echo "Applying GitLab ServiceAccount for cluster integration..."
 kubectl apply -f ../confs/gitlab-sa.yaml
 
 echo "Getting GitLab initial root password..."
 GITLAB_PASSWORD=$(kubectl get secret gitlab-gitlab-initial-root-password -n gitlab -ojsonpath='{.data.password}' | base64 --decode)
+
+sudo docker inspect k3d-iot-cluster-serverlb | grep "IPAddress"
 
 echo "✅ Setup complete!"
 echo "Access Argo CD: kubectl port-forward --address 192.168.56.130 svc/argocd-server 8080:80 -n argocd"

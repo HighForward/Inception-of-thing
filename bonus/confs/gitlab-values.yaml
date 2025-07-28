@@ -119,6 +119,7 @@ grafana:
 nginx-ingress:
   enabled: true
   controller:
+    controller.watchNamespace: ""
     resources:
       requests:
         cpu: 100m
