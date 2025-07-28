@@ -2,10 +2,11 @@
 
 set -e
 
-echo "🚀 Launching Part 3 setup..."
+echo "🚀 Launching bonus setup..."
 
 # Run the install script if needed
-if ! command -v k3d &> /dev/null || ! command -v kubectl &> /dev/null || ! command -v argocd &> /dev/null; then
+if ! command -v k3d &> /dev/null \
+    || ! command -v kubectl &> /dev/null; then
     echo "Installing dependencies..."
     chmod +x install.sh
     ./install.sh
@@ -24,6 +25,11 @@ k3d cluster create iot-cluster \
 echo "Creating namespaces..."
 kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
 kubectl create namespace dev --dry-run=client -o yaml | kubectl apply -f -
+kubectl create namespace gitlab --dry-run=client -o yaml | kubectl apply -f -
+
+echo "📦 Installing Helm..."
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
 
 # Install Argo CD
 echo "Installing Argo CD..."
@@ -41,10 +47,34 @@ kubectl apply -f ../confs/app.yaml
 echo "Getting Argo CD admin password..."
 ARGOCD_PASSWORD=$(kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 --decode)
 
+echo "Adding GitLab Helm repository..."
+helm repo add gitlab https://charts.gitlab.io/ || true
+helm repo update
+
+echo "Installing GitLab with Helm (this will take a while)..."
+# Assurez-vous que le fichier gitlab-values.yaml est bien dans /vagrant/bonus/
+helm upgrade --install gitlab gitlab/gitlab \
+  --namespace gitlab \
+  -f /vagrant/confs/gitlab-values.yaml \
+  --timeout 1200s
+
+echo "Waiting for GitLab pods to be ready (this can take 5-15 minutes)..."
+kubectl wait --for=condition=ready pods --all -n gitlab --timeout=12000s
+
+echo "Applying GitLab ServiceAccount for cluster integration..."
+kubectl apply -f ../confs/gitlab-sa.yaml
+
+echo "Getting GitLab initial root password..."
+GITLAB_PASSWORD=$(kubectl get secret gitlab-gitlab-initial-root-password -n gitlab -ojsonpath='{.data.password}' | base64 --decode)
+
 echo "✅ Setup complete!"
-echo "Access Argo CD: kubectl port-forward --address 192.168.56.120 svc/argocd-server 8080:80 -n argocd"
+echo "Access Argo CD: kubectl port-forward --address 192.168.56.130 svc/argocd-server 8080:80 -n argocd"
 echo "Username: admin"
 echo "Password: $ARGOCD_PASSWORD"
+echo ""
+echo "Access GitLab: http://gitlab.local"
+echo "GitLab Username: root"
+echo "GitLab Initial Password: $GITLAB_PASSWORD"
 echo ""
 echo "Your app should be deployed to 'dev' namespace"
 echo "Check with: kubectl get pods -n dev"

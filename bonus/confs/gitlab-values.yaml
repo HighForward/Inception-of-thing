@@ -1,0 +1,128 @@
+global:
+  edition: ce
+  hosts:
+    domain: local
+    https: false
+    externalIP: 127.0.0.1
+    gitlab:
+      name: gitlab.local
+  ingress:
+    configureCertmanager: false
+    class: nginx
+    tls:
+      enabled: false
+
+  installCertmanager: false
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+
+certmanager:
+  install: false
+
+gitlab-runner:
+  install: false
+
+postgresql:
+  install: true
+  postgresql:
+    image:
+      tag: "14"
+  resources:
+    requests:
+      cpu: 300m
+      memory: 768Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  persistence:
+    size: 8Gi
+
+redis:
+  install: true
+  master:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 300m
+        memory: 512Mi
+
+minio:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+gitlab:
+  webservice:
+    minReplicas: 1
+    maxReplicas: 1
+    resources:
+      requests:
+        cpu: 500m
+        memory: 2Gi
+      limits:
+        cpu: 1000m
+        memory: 3Gi
+  sidekiq:
+    sidekiq:
+    minReplicas: 1
+    maxReplicas: 1
+    resources:
+      requests:
+        cpu: 300m
+        memory: 1Gi
+      limits:
+        cpu: 500m
+        memory: 1.5Gi
+  gitaly:
+    resources:
+      requests:
+        cpu: 300m
+        memory: 1Gi
+      limits:
+        cpu: 800m
+        memory: 1.5Gi
+    persistence:
+      size: 10Gi
+  gitlab-shell:
+    minReplicas: 1
+    maxReplicas: 1
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 128Mi
+  gitlab-exporter:
+    enabled: false
+  kas:
+    enabled: false
+
+prometheus:
+  install: false
+
+grafana:
+  enabled: false
+
+nginx-ingress:
+  enabled: true
+  controller:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 300m
+        memory: 256Mi
