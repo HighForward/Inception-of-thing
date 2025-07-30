@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: playground-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: http://gitlab.local/root/iot.git
+    targetRevision: HEAD
+    path: dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

@@ -5,7 +5,7 @@ set -e
 echo "🚀 Launching Part 3 setup..."
 
 # Run the install script if needed
-if ! command -v k3d &> /dev/null || ! command -v kubectl &> /dev/null; then
+if ! command -v k3d &> /dev/null || ! command -v kubectl &> /dev/null || ! command -v argocd &> /dev/null; then
     echo "Installing dependencies..."
     chmod +x install.sh
     ./install.sh
