@@ -117,13 +117,12 @@ grafana:
   enabled: false
 
 nginx-ingress:
-  enabled: true
-  controller:
-    controller.watchNamespace: ""
-    resources:
-      requests:
-        cpu: 100m
-        memory: 128Mi
-      limits:
-        cpu: 300m
-        memory: 256Mi
+  enabled: false
+#  controller:
+#    resources:
+#      requests:
+#        cpu: 100m
+#        memory: 128Mi
+#      limits:
+#        cpu: 300m
+#        memory: 256Mi

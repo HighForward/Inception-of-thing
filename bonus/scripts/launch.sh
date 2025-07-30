@@ -47,6 +47,15 @@ kubectl apply -f ../confs/app.yaml
 echo "Getting Argo CD admin password..."
 ARGOCD_PASSWORD=$(kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 --decode)
 
+##Nginx controller install
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+
+helm install ingress-nginx ingress-nginx/ingress-nginx \
+  --namespace ingress-nginx \
+  --create-namespace
+
+##Gitlab install with helm
 echo "Adding GitLab Helm repository..."
 helm repo add gitlab https://charts.gitlab.io/ || true
 helm repo update
@@ -58,7 +67,11 @@ helm upgrade --install gitlab gitlab/gitlab \
   --timeout 1200s
 
 echo "Waiting for GitLab pods to be ready (this can take 5-15 minutes)..."
-kubectl wait --for=condition=ready pods --all -n gitlab --timeout=1200s
+kubectl get pods -n gitlab \
+  --field-selector=status.phase=Running \
+  -o name | xargs -I {} \
+  kubectl wait --for=condition=ready {} -n gitlab --timeout=1200s
+
 
 echo "Applying GitLab ServiceAccount for cluster integration..."
 kubectl apply -f ../confs/gitlab-sa.yaml
